@@ -41,17 +41,24 @@ function services_docs_menu() {
  * Much of this is taken from services_admin_browse_index()
  */
 function services_docs_page_all() {
-  $methods = services_get_all();
+  $methods = services_get_servers(); //services_get_all();
 
   // Show enabled server modules
   $servers = module_implements('server_info');
   $output = '<h2>'. t('Servers') .'</h2>';
-
-  if (!empty($servers)) {
+dpm(get_defined_vars());
+//dpm(services_endpoint_list());
+dpm(services_get_resources());
+dpm(services_controllers_list());
+dpm(services_controller_get());
+dpm(services_endpoint_load_all(), "the one");
+module_load_include('admin.inc', 'services');
+// dpm(services_edit_endpoint_resources('rest'));
+if (!empty($servers)) {
     $output .= '<ul>';
     foreach ($servers as $module) {
       $info = module_invoke($module, 'server_info');
-      services_strip_hashes($info);
+      // services_strip_hashes($info);
 
       $name = $info['name'];
       $path = 'services/'. $info['path'];
@@ -62,7 +69,7 @@ function services_docs_page_all() {
   else {
     $output .= '<p>' .t('No servers have been enabled') .'</p>';
   }
-
+$output .= services_edit_endpoint_resources('rest');
   // Show services
   $output .= '<h2>'. t('Services') .'</h2>';
 
