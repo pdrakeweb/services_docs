@@ -5,6 +5,33 @@
  *   Generates user-friendly documentation for the services available on the site.
  */
 
+function services_docs_autoload_info() {
+  return array(
+    'RESTServicesDocsViewBuiltIn' => array(
+      'file' => 'includes/RESTServicesDocsView.inc',
+    ),
+  );
+}
+
+
+function services_docs_services_resources() {
+  require_once("resources/rest_wadl_doc.inc");
+  $resources = array();
+  $resources += services_docs_rest_wadl_resource_definition();
+  return $resources;
+}
+
+function services_docs_rest_server_response_formatters_alter(&$formatters) {
+  // TODO: if this is a call correlated to a services_doc callback?
+  $formatters['xml']['view'] = "RESTServicesDocsView";
+}
+
+
+
+
+
+
+
 /**
  * Implementation of hook_perm().
  */
@@ -41,52 +68,53 @@ function services_docs_menu() {
  * Much of this is taken from services_admin_browse_index()
  */
 function services_docs_page_all() {
-  $methods = services_get_all();
-
-  // Show enabled server modules
-  $servers = module_implements('server_info');
-  $output = '<h2>'. t('Servers') .'</h2>';
-
-  if (!empty($servers)) {
-    $output .= '<ul>';
-    foreach ($servers as $module) {
-      $info = module_invoke($module, 'server_info');
-      services_strip_hashes($info);
-
-      $name = $info['name'];
-      $path = 'services/'. $info['path'];
-      $output .= '<li class="leaf">'. l($name .' - /'. $path, $path) .'</li>';
-    }
-    $output .= '</ul>';
-  }
-  else {
-    $output .= '<p>' .t('No servers have been enabled') .'</p>';
-  }
-
-  // Show services
-  $output .= '<h2>'. t('Services') .'</h2>';
-
-  // group namespaces
-  $services = array();
-  foreach ($methods as $method) {
-    $namespace = drupal_substr($method['method'], 0, strrpos($method['method'], '.'));
-    $services[$namespace][] = $method;
-  }
-
-  if (count($services)) {
-    foreach ($services as $namespace => $methods) {
-      $output .= '<h3>'. $namespace .'</h3>';
-      $output .= '<ul>';
-      foreach ($methods as $method) {
-        $output .= '<li class="leaf">'. l($method['method'], 'services-docs/'. $method['method']) .'</li>';
-      }
-      $output .= '</ul>';
-    }
-  }
-  else {
-    $output .= t('No services have been enabled.');
-  }
-
+  // $methods = services_get_all();
+  // 
+  // // Show enabled server modules
+  // $servers = module_implements('server_info');
+  // $output = '<h2>'. t('Servers') .'</h2>';
+  // 
+  // if (!empty($servers)) {
+  //   $output .= '<ul>';
+  //   foreach ($servers as $module) {
+  //     $info = module_invoke($module, 'server_info');
+  //     services_strip_hashes($info);
+  // 
+  //     $name = $info['name'];
+  //     $path = 'services/'. $info['path'];
+  //     $output .= '<li class="leaf">'. l($name .' - /'. $path, $path) .'</li>';
+  //   }
+  //   $output .= '</ul>';
+  // }
+  // else {
+  //   $output .= '<p>' .t('No servers have been enabled') .'</p>';
+  // }
+  // 
+  // // Show services
+  // $output .= '<h2>'. t('Services') .'</h2>';
+  // 
+  // // group namespaces
+  // $services = array();
+  // foreach ($methods as $method) {
+  //   $namespace = drupal_substr($method['method'], 0, strrpos($method['method'], '.'));
+  //   $services[$namespace][] = $method;
+  // }
+  // 
+  // if (count($services)) {
+  //   foreach ($services as $namespace => $methods) {
+  //     $output .= '<h3>'. $namespace .'</h3>';
+  //     $output .= '<ul>';
+  //     foreach ($methods as $method) {
+  //       $output .= '<li class="leaf">'. l($method['method'], 'services-docs/'. $method['method']) .'</li>';
+  //     }
+  //     $output .= '</ul>';
+  //   }
+  // }
+  // else {
+  //   $output .= t('No services have been enabled.');
+  // }
+  // 
+  $output = "NOTHING TO SEE HERE1";
   return $output;
 }
 
@@ -97,34 +125,35 @@ function services_docs_page_all() {
  * @todo Show roles w/ permission to view
  */
 function services_docs_page_method($method) {
-  drupal_set_title(t('Service') .': '. check_plain($method['method']));
-  $output = '';
+  // drupal_set_title(t('Service') .': '. check_plain($method['method']));
+  // $output = '';
+  // 
+  // $output .= '<p>'. $method['help'] .'</p>';
+  // 
+  // // Show a sample
+  // $args = array();
+  // foreach ($method['args'] as $arg) {
+  //   $args[] = $arg['type'] .' <em>$'. $arg['name'] .'</em>';
+  // }
+  // $output .= '<p><strong>'. $method['method'] .'</strong>( '. implode(' , ', $args) .' )</p>';
+  // 
+  // // List arguments
+  // $output .= '<h3>'. t('Arguments') .' ('. count($method['args']) .')</h3>';
+  // $output .= '<dl id="service-browser-arguments">';
+  // $count = 0;
+  // foreach ($method['args'] as $arg) {
+  //   $count++;
+  //   $output .= '<dt><em class="type">'. $arg['type'] .'</em> <strong class="name">'.
+  //     $arg['name'] .'</strong> ('. (($arg['optional']) ? t('optional') : t('required')) .')</dt>';
+  //   $output .= '<dd>'. $arg['description'] .'</dd>';
+  // }
+  // 
+  // $output .= '</dl>';
+  // 
+  // // Return
+  // $output .= '<h3>'. t('Returns') .'</h3>';
+  // $output .= '<p>'. $method['return'] .'</p>';
 
-  $output .= '<p>'. $method['help'] .'</p>';
-
-  // Show a sample
-  $args = array();
-  foreach ($method['args'] as $arg) {
-    $args[] = $arg['type'] .' <em>$'. $arg['name'] .'</em>';
-  }
-  $output .= '<p><strong>'. $method['method'] .'</strong>( '. implode(' , ', $args) .' )</p>';
-
-  // List arguments
-  $output .= '<h3>'. t('Arguments') .' ('. count($method['args']) .')</h3>';
-  $output .= '<dl id="service-browser-arguments">';
-  $count = 0;
-  foreach ($method['args'] as $arg) {
-    $count++;
-    $output .= '<dt><em class="type">'. $arg['type'] .'</em> <strong class="name">'.
-      $arg['name'] .'</strong> ('. (($arg['optional']) ? t('optional') : t('required')) .')</dt>';
-    $output .= '<dd>'. $arg['description'] .'</dd>';
-  }
-
-  $output .= '</dl>';
-
-  // Return
-  $output .= '<h3>'. t('Returns') .'</h3>';
-  $output .= '<p>'. $method['return'] .'</p>';
-
+  $output = "NOTHING TO SEE HERE2";
   return $output;
 }
