@@ -1,5 +1,6 @@
 <?php
 /**
+ * Original source: http://code.google.com/p/array-to-domdocument/
  * @author Omer Hassan
  */
 class DOM
