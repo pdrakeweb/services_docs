@@ -27,8 +27,16 @@ class RESTServicesDocsView extends RESTServerViewBuiltIn {
     // *  http://stackoverflow.com/questions/1397036/how-to-convert-array-to-simplexml-in-php
 
     module_load_include('php', 'services_docs', 'lib/DOM-2.0');
-    // return DOM::arrayToXMLString($data, "application");
     $dom_data = DOM::arrayToDOMDocument($data, "application");
+
+    // processing instruction data
+    $styleheetParams = 'href="/wadl.xsl" type="text/xsl"';
+    $xmlstylesheet = new DOMProcessingInstruction( 'xml-stylesheet', $styleheetParams);
+
+    //prepend it to the doc
+    $dom_data->insertBefore($xmlstylesheet, $dom_data->firstChild);
+    $dom_data->normalize();
+
     // TODO: Somehow write application tag attributes - SimpleXML? DOMDocument?
     return $dom_data->saveXML();
   }

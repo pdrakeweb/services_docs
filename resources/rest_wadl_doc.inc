@@ -109,6 +109,5 @@ function _rest_wadl_doc_retrieve() {
     $count++;
   }
   
-  $wadl['output']['now'] = print_r($wadl, TRUE);
   return $wadl;
 }
