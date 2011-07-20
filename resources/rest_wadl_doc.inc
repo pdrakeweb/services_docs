@@ -28,13 +28,21 @@ function _rest_wadl_doc_retrieve() {
   $wadl = array();
   $count = 0;
   $action_mapping = array(
-    'create'   => 'POST', // has no {id} in path
-    'retrieve' => 'GET',
-    'update'   => 'PUT',
-    'delete'   => 'DELETE',
-    'index'    => 'GET',
+    'retrieve'         => 'GET',
+    'update'           => 'PUT',
+    'delete'           => 'DELETE',
+    'index'            => 'GET',
+    'create'           => 'POST', // has no {id} in path
+    'actions'          => 'POST',
+    'targeted actions' => 'POST',
+    'relationships'    => 'GET',
   );
-
+  // WADL schema
+  $wadl[DOM::ATTRIBUTES]["xmlns"] = "http://research.sun.com/wadl/2006/10";
+  $wadl[DOM::ATTRIBUTES]["xmlns:xsi"] = "http://www.w3.org/2001/XMLSchema-instance";
+  $wadl[DOM::ATTRIBUTES]["xmlns:xsd"] = "http://www.w3.org/2001/XMLSchema";
+  $wadl[DOM::ATTRIBUTES]["xsi:schemaLocation"] = "http://wadl.dev.java.net/2009/02 wadl.xsd";
+  $wadl[DOM::ATTRIBUTES]["xmlns:html"] = "http://www.w3.org/1999/xhtml";
   foreach ($services as $servicename => $service) {
     $wadl['resources'][$count][DOM::ATTRIBUTES]['base'] = $base_url . "/" . $service->path;
     $wadl['resources'][$count]['doc'][0][DOM::ATTRIBUTES]['title'] = $service->title;
@@ -56,20 +64,39 @@ function _rest_wadl_doc_retrieve() {
       // Each CRUD operation
       $c_endpoint = array();
       $rud_endpoint = array();
+      
       foreach ($resource['endpoint']['operations'] as $res_operationname => $res_operation) {
-        if ($action_mapping[$res_operationname] == "POST") { // POST is a case where it is not requiring a parameter
-          $c_endpoint[] = array(
-            DOM::ATTRIBUTES => array('name' => "$action_mapping[$res_operationname]"),
+        // Only needs to be done once, but is the same for _RUD
+        if (in_array($res_operationname, array("retrieve", "update", "delete"))) {
+          $rud_endpoint_idopname = $resource[$res_operationname]['args'][0]['name'];
+          $rud_endpoint[0][DOM::ATTRIBUTES]['path'] = "{{$rud_endpoint_idopname}}";
+        }
+      }
+      foreach ($resource['endpoint']['operations'] as $res_operationname => $res_operation) {
+        $current = array();
+        $current[DOM::ATTRIBUTES]['name'] = "$action_mapping[$res_operationname]";
+        $params = array();
+        foreach ($resource[$res_operationname]['args'] as $resource_args_param) {
+          $params[] = array(
+            DOM::ATTRIBUTES => array(
+              //'name' => 
+              'type' => $resource_args_param['type'],
+              'required' => !$resource_args_param['optional'] ? "true" : "false",
+            ),
+            'doc' => $resource_args_param['description'],
           );
         }
+        $current['request'] = $params;
+        //$current['response'] = NULL;
+        $current['doc'] = $resource[$res_operationname]['help'];
+        if ($action_mapping[$res_operationname] == "POST") { // POST is a case where it is not requiring a parameter
+          $c_endpoint[] = $current;
+        }
         else {
-          $rud_endpoint[0]['method'][] = array(
-            DOM::ATTRIBUTES => array('name' => "$action_mapping[$res_operationname]"),
-          );
-          // Only needs to be done once, but is the same for _RUD
-          if (in_array($res_operationname, array("retrieve", "update", "delete"))) {
-            $rud_endpoint[0][DOM::ATTRIBUTES]['path'] = "{{$resource[$res_operationname]['args'][0]['name']}}";
+          if (isset($rud_endpoint_idopname)) {
+            $current[DOM::ATTRIBUTES]['id'] = $rud_endpoint_idopname;
           }
+          $rud_endpoint[0]['method'][] = $current;
         }
       }
       $wadl['resources'][$count]['resource'][] = array(
@@ -77,13 +104,11 @@ function _rest_wadl_doc_retrieve() {
         'resource' => $rud_endpoint,
         'method' => $c_endpoint,
       );
+      unset($rud_endpoint_idopname);
     }
     $count++;
-
-    dpm($resources, "RESOURCES in WADL SERV");
   }
   
   $wadl['output']['now'] = print_r($wadl, TRUE);
-  dpm($wadl, "WADL DUMP!");
   return $wadl;
 }
