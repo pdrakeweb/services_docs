@@ -11,9 +11,9 @@ function services_docs_rest_wadl_resource_definition(){
         'file' => array('type' => 'inc', 'module' => 'services_docs', 'name' => 'resources/rest_wadl_doc'),
         'callback' => '_rest_wadl_doc_retrieve',
         'help' => 'Get WADL definition for available services definitions.',
-        'access callback' => 'services_access_menu',
-        'access arguments' => array('view'),
-        'access arguments append' => TRUE,
+        'access callback' => 'user_access',
+        'access arguments' => array('access services documentation'),
+        'access arguments append' => FALSE,
       ),
     ),
   );
