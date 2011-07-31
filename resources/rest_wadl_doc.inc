@@ -86,7 +86,7 @@ function _rest_wadl_doc_retrieve() {
         $current[DOM::ATTRIBUTES]['name'] = "$action_mapping[$res_operationname]";
         $params = array();
         foreach ($resource[$res_operationname]['args'] as $resource_args_param) {
-          if ($resource_args_param['source']['param']){
+          if ($resource_args_param['source']['param']){ //list query parameters
           $params[] = array(
             DOM::ATTRIBUTES => array(
               'type' => $resource_args_param['type'],
