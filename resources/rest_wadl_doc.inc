@@ -15,6 +15,14 @@ function services_docs_rest_wadl_resource_definition(){
         'access arguments' => array('access services documentation'),
         'access arguments append' => FALSE,
       ),
+      'index' => array(
+        'file' => array('type' => 'inc', 'module' => 'services_docs', 'name' => 'resources/rest_wadl_doc'),
+        'callback' => '_rest_wadl_doc_index',
+        'help' => 'Debug endpoint',
+        'access callback' => 'user_access',
+        'access arguments' => array('access services documentation'),
+        'access arguments append' => FALSE,
+      ),
     ),
   );
   return $apci_groups_resource;
@@ -43,7 +51,7 @@ function _rest_wadl_doc_retrieve() {
   $wadl[DOM::ATTRIBUTES]["xmlns:xsd"] = "http://www.w3.org/2001/XMLSchema";
   $wadl[DOM::ATTRIBUTES]["xsi:schemaLocation"] = "http://wadl.dev.java.net/2009/02 wadl.xsd";
   $wadl[DOM::ATTRIBUTES]["xmlns:html"] = "http://www.w3.org/1999/xhtml";
-  foreach ($services as $servicename => $service) {
+  foreach ($services as $servicename => $service) { // this pulls in all the endpoints
     $wadl['resources'][$count][DOM::ATTRIBUTES]['base'] = $base_url . "/" . $service->path;
     $wadl['resources'][$count]['doc'][0][DOM::ATTRIBUTES]['title'] = $service->title;
     $wadl['resources'][$count]['doc'][0][DOM::CONTENT] = "Doc stuff here!!!";
@@ -51,7 +59,7 @@ function _rest_wadl_doc_retrieve() {
     // filter resources based on enable
     $resources = array();
     foreach ($service->resources as $resourcename_top => $resource_top) {
-      foreach (services_get_resources($servicename) as $resourcename => $resource) {
+      foreach (services_get_resources($servicename) as $resourcename => $resource) { //this pulls in all the resources within endpoint
         if ($resourcename_top == $resource['name']) {
           if ($resourcename_top != "services_docs_rest_wadl") { // filter out WADL?
             $resources[$resourcename] = $resource;
@@ -67,6 +75,7 @@ function _rest_wadl_doc_retrieve() {
       
       foreach ($resource['endpoint']['operations'] as $res_operationname => $res_operation) {
         // Only needs to be done once, but is the same for _RUD
+        // @todo path should really be getting pulled from path parameter in operation
         if (in_array($res_operationname, array("retrieve", "update", "delete"))) {
           $rud_endpoint_idopname = $resource[$res_operationname]['args'][0]['name'];
           $rud_endpoint[0][DOM::ATTRIBUTES]['path'] = "{{$rud_endpoint_idopname}}";
@@ -77,16 +86,20 @@ function _rest_wadl_doc_retrieve() {
         $current[DOM::ATTRIBUTES]['name'] = "$action_mapping[$res_operationname]";
         $params = array();
         foreach ($resource[$res_operationname]['args'] as $resource_args_param) {
+          if ($resource_args_param['source']['param']){
           $params[] = array(
             DOM::ATTRIBUTES => array(
-              //'name' => 
               'type' => $resource_args_param['type'],
               'required' => !$resource_args_param['optional'] ? "true" : "false",
+              'style' => 'query',
+              'name' => $resource_args_param['name'],
+              'default' => $resource_args_param['default value'],
             ),
-            'doc' => $resource_args_param['description'],
+           'doc' => $resource_args_param['description'],
           );
+          }
         }
-        $current['request'] = $params;
+        $current['request'][]['param'] = $params; // @todo - this needs to change in order for the params to come through
         //$current['response'] = NULL;
         $current['doc'] = $resource[$res_operationname]['help'];
         if ($action_mapping[$res_operationname] == "POST") { // POST is a case where it is not requiring a parameter
