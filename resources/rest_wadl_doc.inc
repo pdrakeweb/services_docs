@@ -58,8 +58,9 @@ function _rest_wadl_doc_retrieve() {
     // TODO: functionize the creation of a resource?
     // filter resources based on enable
     $resources = array();
-    foreach ($service->resources as $resourcename_top => $resource_top) {
-      foreach (services_get_resources($servicename) as $resourcename => $resource) { //this pulls in all the resources within endpoint
+    foreach ($service->resources as $resourcename_top => $resource_top) { // @todo is this redundant?
+      //build an array of resource ops keyed by alias
+      foreach (services_get_resources($servicename) as $resourcename => $resource) {
         if ($resourcename_top == $resource['name']) {
           if ($resourcename_top != "services_docs_rest_wadl") { // filter out WADL?
             $resources[$resourcename] = $resource;
@@ -67,8 +68,93 @@ function _rest_wadl_doc_retrieve() {
         }
       }
     }
+  } //wrap this around whe whole thing
+  // ok we have our array, let's go
+  foreach ($resources as $resourcename => $resource){
+    $r_info = _build_resource($resourcename, $resource);
+    $wadl['resources'][$count]['resource'][] = $r_info;
+    //$count ++;
+    /*$wadl['resources'][]['resource'][] = array(
+        DOM::ATTRIBUTES => array('path' => $resourcename),
+        'resource' => $r_info['rud'],
+        //'method' => $c_endpoint,
+    );*/
+  }
+  return $wadl;
+}
+/**
+ * Takes a resource key and array, returns an array to WADL
+ */
+function _build_resource($resourcename, $resource){
+  $r_info = array(
+    DOM::ATTRIBUTES => array('path' => $resourcename),
+  );
+  foreach ($resource as $op_top => $def){
+    switch ($op_top){
+      case 'retrieve':
+        $method = _build_retrieve_method($def);
+       //$r_info['resource'][]['method'][] = $method;
+        $r_info['resource'][$def['args'][0]['name']] = array(
+          DOM::ATTRIBUTES => array('path' => '{'.$def['args'][0]['name'].'}'),
+        );
+        $r_info['resource'][$def['args'][0]['name']]['method'][] = $method;
+      break;
+      case 'index':
+        $method = _build_retrieve_method($def);
+        $r_info['method'][] = $method;
+      break;
+      case 'relationships':
+        foreach($def as $rel_id => $rel){
+          $method = _build_retrieve_method($rel);
+          $r_info['resource'][$rel['args'][0]['name']]['resource'][$rel_id] = array(
+            DOM::ATTRIBUTES => array('path' => $rel_id),
+            'method' => array($method),
+          );
+        }
+      break;
+    }
+  }
+  return $r_info;
+}
+
+function _build_retrieve_method($def){
+  $method = array( //need to inject sub path here
+    DOM::ATTRIBUTES => array(
+      'name' => 'GET',
+      'id' => $def['args'][0]['name'],
+    ),
+    'doc' => $def['help'],
+  );
+  $param = array();
+  foreach ($def['args'] as $arg){
+    if ($arg['source']['param']){
+      $param[] = array(
+        DOM::ATTRIBUTES => array(
+          'type' => $arg['type'],
+          'required' => !$arg['optional'] ? "true" : "false",
+          'style' => 'query',
+          'name' => $arg['name'],
+          'default' => $arg['default value'],
+        ),
+        'doc' => $arg['description'],
+      );
+    }
+  }
+  $method['request'][]['param'] = $param;
+  return $method;
+}
+
+function _build_relationship_method($def){
+  $method = array( //need to inject sub path here
+    DOM::ATTRIBUTES => array(
+      'name' => 'GET',
+      'id' => $def['args'][0]['name'],
+    ),
+    'doc' => $def['help'],
+  );
+}
     // Each alias/endpoint
-    foreach ($resources as $resourcename => $resource) {
+    /*foreach ($resources as $resourcename => $resource) {
       // Each CRUD operation
       $c_endpoint = array();
       $rud_endpoint = array();
@@ -123,4 +209,5 @@ function _rest_wadl_doc_retrieve() {
   }
   
   return $wadl;
-}
+}*/
+    
