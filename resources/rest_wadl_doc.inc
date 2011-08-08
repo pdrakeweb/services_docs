@@ -173,24 +173,7 @@ function _build_update_method($def){
     /* @todo this is probably wrong....*/
   /*they should be pulled in from a parser call, but couldn't find one, there may be one in services
    tools, but this needs research*/
-  $method['request'][]['representation'] = array(
-    array(
-      DOM::ATTRIBUTES => array('mediaType' => 'application/x-www-form-urlencoded'),
-      'param' => $data_param,
-    ),
-    array(
-      DOM::ATTRIBUTES => array('mediaType' => 'application/x-yaml'),
-      'param' => $data_param,
-    ),
-    array(
-      DOM::ATTRIBUTES => array('mediaType' => 'application/json'),
-      'param' => $data_param,
-    ),
-    array(
-      DOM::ATTRIBUTES => array('mediaType' => 'application/vnd.php.serialized'),
-      'param' => $data_param,
-    ),
-  );
+  $method['request'][]['representation'] = _build_representations($data_param);
   return $method;
 }
 
@@ -218,7 +201,21 @@ function _build_retrieve_method($def){
     }
   }
   $method['request'][]['param'] = $param;
+  //module_load_include($def['file']['type'], $def['file']['module'], $def['file']['name']);
+  //$method['response'][]['representation'] = _build_representations($param);
+  //build the response
+  //$response = flatten_array($def['response']['data']);
+  //$method['response'][]['representation']
   return $method;
+}
+
+//well this function needs some love
+function flatten_array($array){
+  if (!$array) return false;
+   $flat = array();
+   $RII = new RecursiveIteratorIterator(new RecursiveArrayIterator($array));
+   foreach ($RII as $value) $flat[$RII::key] = $value;
+   return $flat;
 }
 
 function _build_create_method($def){
@@ -253,7 +250,12 @@ function _build_create_method($def){
   /* @todo this is probably wrong....*/
   /*they should be pulled in from a parser call, but couldn't find one, there may be one in services
    tools, but this needs research*/
-  $method['request'][]['representation'] = array(
+  $method['request'][]['representation'] = _build_representations($param);
+  return $method;
+}
+
+function _build_representations($param){
+  $return = array(
     array(
       DOM::ATTRIBUTES => array('mediaType' => 'application/x-www-form-urlencoded'),
       'param' => $param,
@@ -271,8 +273,9 @@ function _build_create_method($def){
       'param' => $param,
     ),
   );
-  return $method;
+  return $return;
 }
+
     // Each alias/endpoint
     /*foreach ($resources as $resourcename => $resource) {
       // Each CRUD operation
