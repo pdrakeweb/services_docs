@@ -1,1 +1,6 @@
+# Services Documentation and WADL provider
 Auto-generated, human-friendly documentation of web services available through Drupal's Services module.
+
+# Attribution:
+*  DOM2.0 PHP Array <-> XML: http://code.google.com/p/array-to-domdocument/
+*  wadl_documentation-2006-10.xsl: https://github.com/mnot/wadl_stylesheets
