@@ -52,34 +52,36 @@ function _rest_wadl_doc_retrieve() {
   $wadl[DOM::ATTRIBUTES]["xsi:schemaLocation"] = "http://wadl.dev.java.net/2009/02 wadl.xsd";
   $wadl[DOM::ATTRIBUTES]["xmlns:html"] = "http://www.w3.org/1999/xhtml";
   foreach ($services as $servicename => $service) { // this pulls in all the endpoints
-    $wadl['resources'][$count][DOM::ATTRIBUTES]['base'] = $base_url . "/" . $service->path;
-    $wadl['resources'][$count]['doc'][0][DOM::ATTRIBUTES]['title'] = $service->title;
-    $wadl['resources'][$count]['doc'][0][DOM::CONTENT] = "Doc stuff here!!!";
-    // TODO: functionize the creation of a resource?
-    // filter resources based on enable
-    $resources = array();
-    foreach ($service->resources as $resourcename_top => $resource_top) { // @todo is this redundant?
-      //build an array of resource ops keyed by alias
-      foreach (services_get_resources($servicename) as $resourcename => $resource) {
-        if ($resourcename_top == $resource['name']) {
-          if ($resourcename_top != "services_docs_rest_wadl") { // filter out WADL?
-            $resources[$resourcename] = $resource;
+    if (drupal_match_path($_GET['q'], $service->path . "/*") && array_key_exists("services_docs_rest_wadl", $service->resources)) { // Are we in the current service definition that includes the WADL def
+      $wadl['resources'][$count][DOM::ATTRIBUTES]['base'] = $base_url . "/" . $service->path;
+      $wadl['resources'][$count]['doc'][0][DOM::ATTRIBUTES]['title'] = $service->title;
+      $wadl['resources'][$count]['doc'][0][DOM::CONTENT] = "Doc stuff here!!!";
+      // TODO: functionize the creation of a resource?
+      // filter resources based on enable
+      $resources = array();
+      foreach ($service->resources as $resourcename_top => $resource_top) { // @todo is this redundant?
+        //build an array of resource ops keyed by alias
+        foreach (services_get_resources($servicename) as $resourcename => $resource) {
+          if ($resourcename_top == $resource['name']) {
+            if ($resourcename_top != "services_docs_rest_wadl") { // filter out WADL?
+              $resources[$resourcename] = $resource;
+            }
           }
         }
       }
+      // ok we have our array, let's go
+      foreach ($resources as $resourcename => $resource){
+        $r_info = _build_resource($resourcename, $resource);
+        $wadl['resources'][$count]['resource'][] = $r_info;
+        /*$wadl['resources'][]['resource'][] = array(
+            DOM::ATTRIBUTES => array('path' => $resourcename),
+            'resource' => $r_info['rud'],
+            //'method' => $c_endpoint,
+        );*/
+      }
+      $count++;
     }
   } //wrap this around whe whole thing
-  // ok we have our array, let's go
-  foreach ($resources as $resourcename => $resource){
-    $r_info = _build_resource($resourcename, $resource);
-    $wadl['resources'][$count]['resource'][] = $r_info;
-    //$count ++;
-    /*$wadl['resources'][]['resource'][] = array(
-        DOM::ATTRIBUTES => array('path' => $resourcename),
-        'resource' => $r_info['rud'],
-        //'method' => $c_endpoint,
-    );*/
-  }
   return $wadl;
 }
 /**
