@@ -24,6 +24,7 @@ function services_docs_services_resources() {
 
 function services_docs_rest_server_response_formatters_alter(&$formatters) {
   // TODO: if this is a call correlated to a services_doc callback?
+  // @todo this breaks the rest of the XML formatters for services returns
   $formatters['xml']['view'] = "RESTServicesDocsView";
 }
 
