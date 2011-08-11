@@ -162,9 +162,7 @@ function _build_update_method($def){
       }
       $data_param_count++;
     }
-    /*else if (isset($arg['source']['param'])){
-      
-    }*/
+    // TODO: elseif: isset($arg['source']['param'])
   }
     
     /* @todo this is probably wrong....*/
