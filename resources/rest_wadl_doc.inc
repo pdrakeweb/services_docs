@@ -73,11 +73,6 @@ function _rest_wadl_doc_retrieve() {
       foreach ($resources as $resourcename => $resource){
         $r_info = _build_resource($resourcename, $resource);
         $wadl['resources'][$count]['resource'][] = $r_info;
-        /*$wadl['resources'][]['resource'][] = array(
-            DOM::ATTRIBUTES => array('path' => $resourcename),
-            'resource' => $r_info['rud'],
-            //'method' => $c_endpoint,
-        );*/
       }
       $count++;
     }
@@ -277,62 +272,3 @@ function _build_representations($param){
   );
   return $return;
 }
-
-    // Each alias/endpoint
-    /*foreach ($resources as $resourcename => $resource) {
-      // Each CRUD operation
-      $c_endpoint = array();
-      $rud_endpoint = array();
-      
-      foreach ($resource['endpoint']['operations'] as $res_operationname => $res_operation) {
-        // Only needs to be done once, but is the same for _RUD
-        // @todo path should really be getting pulled from path parameter in operation
-        if (in_array($res_operationname, array("retrieve", "update", "delete"))) {
-          $rud_endpoint_idopname = $resource[$res_operationname]['args'][0]['name'];
-          $rud_endpoint[0][DOM::ATTRIBUTES]['path'] = "{{$rud_endpoint_idopname}}";
-        }
-      }
-      foreach ($resource['endpoint']['operations'] as $res_operationname => $res_operation) {
-        $current = array();
-        $current[DOM::ATTRIBUTES]['name'] = "$action_mapping[$res_operationname]";
-        $params = array();
-        foreach ($resource[$res_operationname]['args'] as $resource_args_param) {
-          if ($resource_args_param['source']['param']){ //list query parameters
-          $params[] = array(
-            DOM::ATTRIBUTES => array(
-              'type' => $resource_args_param['type'],
-              'required' => !$resource_args_param['optional'] ? "true" : "false",
-              'style' => 'query',
-              'name' => $resource_args_param['name'],
-              'default' => $resource_args_param['default value'],
-            ),
-           'doc' => $resource_args_param['description'],
-          );
-          }
-        }
-        $current['request'][]['param'] = $params; // @todo - this needs to change in order for the params to come through
-        //$current['response'] = NULL;
-        $current['doc'] = $resource[$res_operationname]['help'];
-        if ($action_mapping[$res_operationname] == "POST") { // POST is a case where it is not requiring a parameter
-          $c_endpoint[] = $current;
-        }
-        else {
-          if (isset($rud_endpoint_idopname)) {
-            $current[DOM::ATTRIBUTES]['id'] = $rud_endpoint_idopname;
-          }
-          $rud_endpoint[0]['method'][] = $current;
-        }
-      }
-      $wadl['resources'][$count]['resource'][] = array(
-        DOM::ATTRIBUTES => array('path' => $resourcename),
-        'resource' => $rud_endpoint,
-        'method' => $c_endpoint,
-      );
-      unset($rud_endpoint_idopname);
-    }
-    $count++;
-  }
-  
-  return $wadl;
-}*/
-    
