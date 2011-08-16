@@ -27,7 +27,7 @@ class RESTServicesDocsView extends RESTServerViewBuiltIn {
     // *  http://stackoverflow.com/questions/1397036/how-to-convert-array-to-simplexml-in-php
 
     module_load_include('php', 'services_docs', 'lib/DOM-2.0');
-    $dom_data = DOM::arrayToDOMDocument($data, "application");
+    $dom_data = DOM::arrayToDOMDocument($data, "wadl:application");
 
     // processing instruction data
     $styleheetParams = 'href="/wadl.xsl" type="text/xsl"';

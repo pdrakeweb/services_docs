@@ -258,9 +258,7 @@ function _build_create_method($def){
   /* @todo this is probably wrong....*/
   /*they should be pulled in from a parser call, but couldn't find one, there may be one in services
    tools, but this needs research*/
-  $tempvar = _build_representations($param);
-  //dpm($tempvar);
-  $method['wadl:request'][]['wadl:representation'] = $tempvar;
+  $method['wadl:request'][]['wadl:representation'] = _build_representations($param);
   return $method;
 }
 
