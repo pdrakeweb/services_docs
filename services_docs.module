@@ -52,8 +52,9 @@ function services_docs_menu() {
 }
 
 function services_docs_services_definition_endpoint() {
-  $xsl = "/lib/wadl_documentation-2006-10.xsl";
-
+//   $xsl = "/lib/wadl_documentation-2006-10.xsl";
+  $xsl = "/lib/wadl.xsl";
+  
   print_r(file_get_contents(drupal_get_path('module', "services_docs") . $xsl));
   exit();
 }

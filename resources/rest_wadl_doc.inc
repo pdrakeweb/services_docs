@@ -46,16 +46,21 @@ function _rest_wadl_doc_retrieve() {
     'relationships'    => 'GET',
   );
   // WADL schema
-  $wadl[DOM::ATTRIBUTES]["xmlns"] = "http://research.sun.com/wadl/2006/10";
+//   $wadl[DOM::ATTRIBUTES]["xmlns:wadl"] = "http://research.sun.com/wadl/2006/10";
+  $wadl[DOM::ATTRIBUTES]["xmlns:wadl"] = "http://wadl.dev.java.net/2009/02";
   $wadl[DOM::ATTRIBUTES]["xmlns:xsi"] = "http://www.w3.org/2001/XMLSchema-instance";
   $wadl[DOM::ATTRIBUTES]["xmlns:xsd"] = "http://www.w3.org/2001/XMLSchema";
   $wadl[DOM::ATTRIBUTES]["xsi:schemaLocation"] = "http://wadl.dev.java.net/2009/02 wadl.xsd";
   $wadl[DOM::ATTRIBUTES]["xmlns:html"] = "http://www.w3.org/1999/xhtml";
+
+  $wadl['wadl:doc'][0][DOM::ATTRIBUTES]['title'] = "BOOM!";
+  $wadl['wadl:doc'][0][DOM::CONTENT] = "LONGER BOOM!";
+
   foreach ($services as $servicename => $service) { // this pulls in all the endpoints
     if (drupal_match_path($_GET['q'], $service->path . "/*") && array_key_exists("services_docs_rest_wadl", $service->resources)) { // Are we in the current service definition that includes the WADL def
-      $wadl['resources'][$count][DOM::ATTRIBUTES]['base'] = $base_url . "/" . $service->path;
-      $wadl['resources'][$count]['doc'][0][DOM::ATTRIBUTES]['title'] = $service->title;
-      $wadl['resources'][$count]['doc'][0][DOM::CONTENT] = "Doc stuff here!!!";
+      $wadl['wadl:resources'][$count][DOM::ATTRIBUTES]['base'] = $base_url . "/" . $service->path;
+      $wadl['wadl:resources'][$count]['wadl:doc'][0][DOM::ATTRIBUTES]['title'] = $service->title;
+      $wadl['wadl:resources'][$count]['wadl:doc'][0][DOM::CONTENT] = "Doc stuff here!!!";
       // TODO: functionize the creation of a resource?
       // filter resources based on enable
       $resources = array();
@@ -71,8 +76,10 @@ function _rest_wadl_doc_retrieve() {
       }
       // ok we have our array, let's go
       foreach ($resources as $resourcename => $resource){
-        $r_info = _build_resource($resourcename, $resource);
-        $wadl['resources'][$count]['resource'][] = $r_info;
+        if (count($resource) > 1) {
+          $r_info = _build_resource($resourcename, $resource);
+          $wadl['wadl:resources'][$count]['wadl:resource'][] = $r_info;
+        }
       }
       $count++;
     }
@@ -86,50 +93,52 @@ function _build_resource($resourcename, $resource){
   $r_info = array(
     DOM::ATTRIBUTES => array('path' => $resourcename),
   );
-  //$ops_count = 0;
   foreach ($resource as $op_top => $def){
     switch ($op_top){
       case 'retrieve':
         $method = _build_retrieve_method($def);
        //$r_info['resource'][]['method'][] = $method;
        // @todo make sure that arg[0] comes from path
-       if (!isset($r_info['resource'][$def['args'][0]['name']])){
-          $r_info['resource'][$def['args'][0]['name']] = array(
+       if (!isset($r_info['wadl:resource'][$def['args'][0]['name']])){
+          $r_info['wadl:resource'][$def['args'][0]['name']] = array(
             DOM::ATTRIBUTES => array('path' => '{'.$def['args'][0]['name'].'}'),
           );
        }
-        $r_info['resource'][$def['args'][0]['name']]['method'][] = $method;
+        $r_info['wadl:resource'][$def['args'][0]['name']]['wadl:method'][] = $method;
       break;
       case 'index':
         $method = _build_retrieve_method($def);
-        $r_info['method'][] = $method;
+        $r_info['wadl:method'][] = $method;
       break;
       case 'relationships':
         foreach($def as $rel_id => $rel){
           $method = _build_retrieve_method($rel);
-          $r_info['resource'][$rel['args'][0]['name']]['resource'][$rel_id] = array(
+          $r_info['wadl:resource'][$rel['args'][0]['name']]['wadl:resource'][$rel_id] = array(
             DOM::ATTRIBUTES => array('path' => $rel_id),
-            'method' => array($method),
+            'wadl:method' => array($method),
           );
         }
       break;
       case 'create':
         $method = _build_create_method($def);
-        $r_info['method'][] = $method;
+        $r_info['wadl:method'][] = $method;
       break;
       case 'update':
         //$method = $wadl;
         $method = _build_update_method($def);
         //@todo make sure it comes from path
-        if (!isset($r_info['resource'][$def['args'][0]['name']])){
-          $r_info['resource'][$def['args'][0]['name']] = array(
+        if (!isset($r_info['wadl:resource'][$def['args'][0]['name']])){
+          $r_info['wadl:resource'][$def['args'][0]['name']] = array(
             DOM::ATTRIBUTES => array('path' => '{'.$def['args'][0]['name'].'}'),
           );
         }
-        $r_info['resource'][$def['args'][0]['name']]['method'][] = $method;
+        $r_info['wadl:resource'][$def['args'][0]['name']]['wadl:method'][] = $method;
+      break;
+      case 'delete':
+        $method = _build_delete_method($def);
+        
       break;
     }
-    //$ops_count++;
   }
   return $r_info;
 }
@@ -140,7 +149,7 @@ function _build_update_method($def){
       'name' => 'PUT',
       'id' => $def['args'][0]['name'],
     ),
-    'doc' => $def['help'],
+    'wadl:doc' => $def['help'],
   );
   $data_param = array();
   $data_param_count = 0;
@@ -153,7 +162,7 @@ function _build_update_method($def){
           'style' => 'plain', //@todo this is probably wrong too..
           'name' => $arg['name'],
         ),
-        'doc' => $arg['description'],
+        'wadl:doc' => $arg['description'],
       );
       if($arg['optional'] == 1){
         if (isset($arg['default value'])){
@@ -168,7 +177,7 @@ function _build_update_method($def){
     /* @todo this is probably wrong....*/
   /*they should be pulled in from a parser call, but couldn't find one, there may be one in services
    tools, but this needs research*/
-  $method['request'][]['representation'] = _build_representations($data_param);
+  $method['wadl:request'][]['wadl:representation'] = _build_representations($data_param);
   return $method;
 }
 
@@ -178,7 +187,7 @@ function _build_retrieve_method($def){
       'name' => 'GET',
       'id' => $def['args'][0]['name'],
     ),
-    'doc' => $def['help'],
+    'wadl:doc' => $def['help'],
   );
   $param = array();
   foreach ($def['args'] as $arg){
@@ -191,17 +200,21 @@ function _build_retrieve_method($def){
           'name' => $arg['name'],
           'default' => $arg['default value'],
         ),
-        'doc' => $arg['description'],
+        'wadl:doc' => $arg['description'],
       );
     }
   }
-  $method['request'][]['param'] = $param;
+  $method['wadl:request'][]['wadl:param'] = $param;
   //module_load_include($def['file']['type'], $def['file']['module'], $def['file']['name']);
   //$method['response'][]['representation'] = _build_representations($param);
   //build the response
   //$response = flatten_array($def['response']['data']);
   //$method['response'][]['representation']
   return $method;
+}
+
+function _build_delete_method($def){
+  
 }
 
 //well this function needs some love
@@ -219,7 +232,7 @@ function _build_create_method($def){
       'name' => 'POST',
       'id' => 'id',
     ),
-    'doc' => $def['help'],
+    'wadl:doc' => $def['help'],
   );
   $param = array();
   $param_count = 0;
@@ -232,7 +245,7 @@ function _build_create_method($def){
           'style' => 'plain', //@todo this is probably wrong too..
           'name' => $arg['name'],
         ),
-        'doc' => $arg['description'],
+        'wadl:doc' => $arg['description'],
       );
       if($arg['optional'] == 1){
         if (isset($arg['default value'])){
@@ -245,7 +258,9 @@ function _build_create_method($def){
   /* @todo this is probably wrong....*/
   /*they should be pulled in from a parser call, but couldn't find one, there may be one in services
    tools, but this needs research*/
-  $method['request'][]['representation'] = _build_representations($param);
+  $tempvar = _build_representations($param);
+  //dpm($tempvar);
+  $method['wadl:request'][]['wadl:representation'] = $tempvar;
   return $method;
 }
 
@@ -253,19 +268,19 @@ function _build_representations($param){
   $return = array(
     array(
       DOM::ATTRIBUTES => array('mediaType' => 'application/x-www-form-urlencoded'),
-      'param' => $param,
+      'wadl:param' => $param,
     ),
     array(
       DOM::ATTRIBUTES => array('mediaType' => 'application/x-yaml'),
-      'param' => $param,
+      'wadl:param' => $param,
     ),
     array(
       DOM::ATTRIBUTES => array('mediaType' => 'application/json'),
-      'param' => $param,
+      'wadl:param' => $param,
     ),
     array(
       DOM::ATTRIBUTES => array('mediaType' => 'application/vnd.php.serialized'),
-      'param' => $param,
+      'wadl:param' => $param,
     ),
   );
   return $return;
