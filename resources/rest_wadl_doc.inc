@@ -53,14 +53,14 @@ function _rest_wadl_doc_retrieve() {
   $wadl[DOM::ATTRIBUTES]["xsi:schemaLocation"] = "http://wadl.dev.java.net/2009/02 wadl.xsd";
   $wadl[DOM::ATTRIBUTES]["xmlns:html"] = "http://www.w3.org/1999/xhtml";
 
-  $wadl[WADL::DOC][0][DOM::ATTRIBUTES]['title'] = "BOOM!";
-  $wadl[WADL::DOC][0][DOM::CONTENT] = "LONGER BOOM!";
+  $wadl[WADL::DOC][0][DOM::ATTRIBUTES]['title'] = variable_get("site_name", "Web Services Application");
+  $wadl[WADL::DOC][0][DOM::CONTENT] = variable_get('site_slogan', '');
 
   foreach ($services as $servicename => $service) { // this pulls in all the endpoints
     if (drupal_match_path($_GET['q'], $service->path . "/*") && array_key_exists("services_docs_rest_wadl", $service->resources)) { // Are we in the current service definition that includes the WADL def
       $wadl[WADL::RESOURCES][$count][DOM::ATTRIBUTES]['base'] = $base_url . "/" . $service->path;
       $wadl[WADL::RESOURCES][$count][WADL::DOC][0][DOM::ATTRIBUTES]['title'] = $service->title;
-      $wadl[WADL::RESOURCES][$count][WADL::DOC][0][DOM::CONTENT] = "Doc stuff here!!!";
+      $wadl[WADL::RESOURCES][$count][WADL::DOC][0][DOM::CONTENT] = variable_get('services_docs_resource_doc_content', '');
       // TODO: functionize the creation of a resource?
       // filter resources based on enable
       $resources = array();
@@ -284,6 +284,7 @@ function _build_create_method($def){
 }
 
 function _build_representations($param){
+  // TODO: Pull representations from Services module api directly
   $return = array(
     array(
       DOM::ATTRIBUTES => array('mediaType' => 'application/x-www-form-urlencoded'),
