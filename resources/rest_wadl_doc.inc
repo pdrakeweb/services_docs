@@ -98,13 +98,12 @@ function _build_resource($resourcename, $resource){
     switch ($op_top){
       case 'retrieve':
         $method = _build_retrieve_method($def);
-       //$r_info['resource'][]['method'][] = $method;
-       // @todo make sure that arg[0] comes from path
-       if (!isset($r_info[WADL::RESOURCE][$def['args'][0]['name']])){
+        // @todo make sure that arg[0] comes from path
+        if (!isset($r_info[WADL::RESOURCE][$def['args'][0]['name']])){
           $r_info[WADL::RESOURCE][$def['args'][0]['name']] = array(
             DOM::ATTRIBUTES => array('path' => '{'.$def['args'][0]['name'].'}'),
           );
-       }
+        }
         $r_info[WADL::RESOURCE][$def['args'][0]['name']][WADL::METHOD][] = $method;
       break;
       case 'index':
@@ -125,7 +124,6 @@ function _build_resource($resourcename, $resource){
         $r_info[WADL::METHOD][] = $method;
       break;
       case 'update':
-        //$method = $wadl;
         $method = _build_update_method($def);
         //@todo make sure it comes from path
         if (!isset($r_info[WADL::RESOURCE][$def['args'][0]['name']])){
@@ -137,7 +135,12 @@ function _build_resource($resourcename, $resource){
       break;
       case 'delete':
         $method = _build_delete_method($def);
-        
+        if (!isset($r_info[WADL::RESOURCE][$def['args'][0]['name']])){
+          $r_info[WADL::RESOURCE][$def['args'][0]['name']] = array(
+          DOM::ATTRIBUTES => array('path' => '{'.$def['args'][0]['name'].'}'),
+          );
+        }
+        $r_info[WADL::RESOURCE][$def['args'][0]['name']][WADL::METHOD][] = $method;
       break;
     }
   }
@@ -215,7 +218,30 @@ function _build_retrieve_method($def){
 }
 
 function _build_delete_method($def){
-  
+  $method = array(
+    DOM::ATTRIBUTES => array(
+      'name' => 'DELETE',
+      'id' => $def['args'][0]['name'],
+    ),
+    WADL::DOC => $def['help'],
+  );
+  $param = array();
+  foreach ($def['args'] as $arg){
+    if (isset($arg['source']['param'])){
+      $param[] = array(
+        DOM::ATTRIBUTES => array(
+          'type' => $arg['type'],
+          'required' => !$arg['optional'] ? "true" : "false",
+          'style' => 'query',
+          'name' => $arg['name'],
+          'default' => $arg['default value'],
+        ),
+        WADL::DOC => $arg['description'],
+      );
+    }
+  }
+  $method[WADL::REQUEST][][WADL::PARAM] = $param;
+  return $method;
 }
 
 //well this function needs some love
