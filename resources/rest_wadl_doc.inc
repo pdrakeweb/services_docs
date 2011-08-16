@@ -31,7 +31,7 @@ function services_docs_rest_wadl_resource_definition(){
 function _rest_wadl_doc_retrieve() {
   module_load_include('inc', 'services_docs', 'includes/wadl');
   module_load_include('php', 'services_docs', 'lib/DOM-2.0');
-  
+
   global $base_url;
   $services = services_endpoint_load_all();
   $wadl = array();
@@ -47,8 +47,7 @@ function _rest_wadl_doc_retrieve() {
     'relationships'    => 'GET',
   );
   // WADL schema
-//   $wadl[DOM::ATTRIBUTES]["xmlns:wadl"] = "http://research.sun.com/wadl/2006/10";
-  $wadl[DOM::ATTRIBUTES]["xmlns:wadl"] = "http://wadl.dev.java.net/2009/02";
+  $wadl[DOM::ATTRIBUTES]["xmlns:wadl"] = "http://wadl.dev.java.net/2009/02"; // Note: Old: http://research.sun.com/wadl/2006/10
   $wadl[DOM::ATTRIBUTES]["xmlns:xsi"] = "http://www.w3.org/2001/XMLSchema-instance";
   $wadl[DOM::ATTRIBUTES]["xmlns:xsd"] = "http://www.w3.org/2001/XMLSchema";
   $wadl[DOM::ATTRIBUTES]["xsi:schemaLocation"] = "http://wadl.dev.java.net/2009/02 wadl.xsd";
@@ -177,10 +176,10 @@ function _build_update_method($def){
     }
     // TODO: elseif: isset($arg['source']['param'])
   }
-    
-    /* @todo this is probably wrong....*/
-  /*they should be pulled in from a parser call, but couldn't find one, there may be one in services
-   tools, but this needs research*/
+
+  /* @todo this is probably wrong....*/
+  /* they should be pulled in from a parser call, but couldn't find one, there may be one in services
+     tools, but this needs research */
   $method[WADL::REQUEST][][WADL::REPRESENTATION] = _build_representations($data_param);
   return $method;
 }
@@ -209,11 +208,6 @@ function _build_retrieve_method($def){
     }
   }
   $method[WADL::REQUEST][][WADL::PARAM] = $param;
-  //module_load_include($def['file']['type'], $def['file']['module'], $def['file']['name']);
-  //$method['response'][]['representation'] = _build_representations($param);
-  //build the response
-  //$response = flatten_array($def['response']['data']);
-  //$method['response'][]['representation']
   return $method;
 }
 
@@ -244,7 +238,7 @@ function _build_delete_method($def){
   return $method;
 }
 
-//well this function needs some love
+// TODO: well this function needs some love... this should be in a utility class
 function flatten_array($array){
   if (!$array) return false;
    $flat = array();
@@ -283,8 +277,8 @@ function _build_create_method($def){
     }
   }
   /* @todo this is probably wrong....*/
-  /*they should be pulled in from a parser call, but couldn't find one, there may be one in services
-   tools, but this needs research*/
+  /* they should be pulled in from a parser call, but couldn't find one, there may be one in services
+     tools, but this needs research */
   $method[WADL::REQUEST][][WADL::REPRESENTATION] = _build_representations($param);
   return $method;
 }
