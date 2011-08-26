@@ -11,10 +11,14 @@
  */
 class RESTServicesDocsView extends RESTServerViewBuiltIn {
   public function render() {
+    module_load_include('inc', 'services_docs', 'includes/wadl');
     // TODO: Check if we are processing a WADL doc
     switch ($this->arguments['format']) {
       case 'xml':
-        return $this->render_xml($this->model);
+        if (array_key_exists(WADL::DOC, $this->model)) {
+          return $this->render_xml($this->model);
+        }
+      break;
     }
     return parent::render();
   }
