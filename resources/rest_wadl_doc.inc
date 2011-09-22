@@ -69,6 +69,7 @@ function _rest_wadl_doc_retrieve() {
         foreach (services_get_resources($servicename) as $resourcename => $resource) {
           if ($resourcename_top == $resource['name']) {
             if ($resourcename_top != "services_docs_rest_wadl") { // filter out WADL?
+              // enforce perms
               $resources[$resourcename] = $resource;
             }
           }
@@ -90,57 +91,79 @@ function _rest_wadl_doc_retrieve() {
  * Takes a resource key and array, returns an array to WADL
  */
 function _build_resource($resourcename, $resource){
+  global $user;
   $r_info = array(
     DOM::ATTRIBUTES => array('path' => $resourcename),
   );
   foreach ($resource as $op_top => $def){
-    switch ($op_top){
-      case 'retrieve':
-        $method = _build_retrieve_method($def);
-        // @todo make sure that arg[0] comes from path
-        if (!isset($r_info[WADL::RESOURCE][$def['args'][0]['name']])){
-          $r_info[WADL::RESOURCE][$def['args'][0]['name']] = array(
-            DOM::ATTRIBUTES => array('path' => '{'.$def['args'][0]['name'].'}'),
-          );
-        }
-        $r_info[WADL::RESOURCE][$def['args'][0]['name']][WADL::METHOD][] = $method;
-      break;
-      case 'index':
-        $method = _build_retrieve_method($def);
-        $r_info[WADL::METHOD][] = $method;
-      break;
-      case 'relationships':
-        foreach($def as $rel_id => $rel){
-          $method = _build_retrieve_method($rel);
-          $r_info[WADL::RESOURCE][$rel['args'][0]['name']][WADL::RESOURCE][$rel_id] = array(
-            DOM::ATTRIBUTES => array('path' => $rel_id),
-            WADL::METHOD => array($method),
-          );
-        }
-      break;
-      case 'create':
-        $method = _build_create_method($def);
-        $r_info[WADL::METHOD][] = $method;
-      break;
-      case 'update':
-        $method = _build_update_method($def);
-        //@todo make sure it comes from path
-        if (!isset($r_info[WADL::RESOURCE][$def['args'][0]['name']])){
-          $r_info[WADL::RESOURCE][$def['args'][0]['name']] = array(
-            DOM::ATTRIBUTES => array('path' => '{'.$def['args'][0]['name'].'}'),
-          );
-        }
-        $r_info[WADL::RESOURCE][$def['args'][0]['name']][WADL::METHOD][] = $method;
-      break;
-      case 'delete':
-        $method = _build_delete_method($def);
-        if (!isset($r_info[WADL::RESOURCE][$def['args'][0]['name']])){
-          $r_info[WADL::RESOURCE][$def['args'][0]['name']] = array(
-          DOM::ATTRIBUTES => array('path' => '{'.$def['args'][0]['name'].'}'),
-          );
-        }
-        $r_info[WADL::RESOURCE][$def['args'][0]['name']][WADL::METHOD][] = $method;
-      break;
+    // TODO: Note the loading and access check are straight from services.runtime.inc:117
+    // Load the proper file
+    if (!empty($def['file']) && $file = $def['file']) {
+      module_load_include($file['type'], $file['module'], (isset($file['name']) ? $file['name'] : NULL));
+    }
+
+    // Construct access arguments array
+    $args = array();
+    if (array_key_exists('access arguments', $def)) {
+      $access_arguments = $def['access arguments'];
+      if (array_key_exists('access arguments append', $def) && $def['access arguments append']) {
+        $access_arguments[] = $args;
+      }
+    }
+    else {
+      // Just use the arguments array if no access arguments have been specified
+      $access_arguments = $args;
+    }
+
+    if (call_user_func_array($def['access callback'], $access_arguments) || $user->uid == 1) {
+      switch ($op_top){
+        case 'retrieve':
+          $method = _build_retrieve_method($def);
+          // @todo make sure that arg[0] comes from path
+          if (!isset($r_info[WADL::RESOURCE][$def['args'][0]['name']])){
+            $r_info[WADL::RESOURCE][$def['args'][0]['name']] = array(
+              DOM::ATTRIBUTES => array('path' => '{'.$def['args'][0]['name'].'}'),
+            );
+          }
+          $r_info[WADL::RESOURCE][$def['args'][0]['name']][WADL::METHOD][] = $method;
+        break;
+        case 'index':
+          $method = _build_retrieve_method($def);
+          $r_info[WADL::METHOD][] = $method;
+        break;
+        case 'relationships':
+          foreach($def as $rel_id => $rel){
+            $method = _build_retrieve_method($rel);
+            $r_info[WADL::RESOURCE][$rel['args'][0]['name']][WADL::RESOURCE][$rel_id] = array(
+              DOM::ATTRIBUTES => array('path' => $rel_id),
+              WADL::METHOD => array($method),
+            );
+          }
+        break;
+        case 'create':
+          $method = _build_create_method($def);
+          $r_info[WADL::METHOD][] = $method;
+        break;
+        case 'update':
+          $method = _build_update_method($def);
+          //@todo make sure it comes from path
+          if (!isset($r_info[WADL::RESOURCE][$def['args'][0]['name']])){
+            $r_info[WADL::RESOURCE][$def['args'][0]['name']] = array(
+              DOM::ATTRIBUTES => array('path' => '{'.$def['args'][0]['name'].'}'),
+            );
+          }
+          $r_info[WADL::RESOURCE][$def['args'][0]['name']][WADL::METHOD][] = $method;
+        break;
+        case 'delete':
+          $method = _build_delete_method($def);
+          if (!isset($r_info[WADL::RESOURCE][$def['args'][0]['name']])){
+            $r_info[WADL::RESOURCE][$def['args'][0]['name']] = array(
+              DOM::ATTRIBUTES => array('path' => '{'.$def['args'][0]['name'].'}'),
+            );
+          }
+          $r_info[WADL::RESOURCE][$def['args'][0]['name']][WADL::METHOD][] = $method;
+        break;
+      }
     }
   }
   return $r_info;
