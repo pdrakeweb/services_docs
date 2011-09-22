@@ -32,6 +32,14 @@ class RESTServicesDocsView extends RESTServerViewBuiltIn {
 
     module_load_include('inc', 'services_docs', 'includes/wadl');
     module_load_include('php', 'services_docs', 'lib/DOM-2.0');
+
+    if (is_object($data)) {
+      $data = get_object_vars($data);
+    }
+    elseif (empty($data)) {
+      $data = array();
+    }
+
     $dom_data = DOM::arrayToDOMDocument($data, WADL::APPLICATION);
 
     // processing instruction data
