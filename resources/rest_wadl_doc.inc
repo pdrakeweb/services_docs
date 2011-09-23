@@ -69,18 +69,21 @@ function _rest_wadl_doc_retrieve() {
         foreach (services_get_resources($servicename) as $resourcename => $resource) {
           if ($resourcename_top == $resource['name']) {
             if ($resourcename_top != "services_docs_rest_wadl") { // filter out WADL?
-              // enforce perms
-              $resources[$resourcename] = $resource;
+              $resources[$resourcename] = array_intersect_key($resource, array_flip(array('retrieve', 'index', 'create', 'update', 'delete')));
+              if (count($relationships = array_intersect_key($resource, array_flip(array('relationships')))) > 0) {
+                // Split out the relationships
+                foreach ($relationships['relationships'] as $resourcerelationshipsname => $resourcerelationships) {
+                  $resources[$resourcename]['relationships_' . $resourcerelationshipsname] = $resourcerelationships;
+                }
+              }
             }
           }
         }
       }
       // ok we have our array, let's go
       foreach ($resources as $resourcename => $resource){
-        if (count($resource) > 1) {
-          $r_info = _build_resource($resourcename, $resource);
-          $wadl[WADL::RESOURCES][$count][WADL::RESOURCE][] = $r_info;
-        }
+        $r_info = _build_resource($resourcename, $resource);
+        $wadl[WADL::RESOURCES][$count][WADL::RESOURCE][] = $r_info;
       }
       $count++;
     }
@@ -114,6 +117,10 @@ function _build_resource($resourcename, $resource){
       // Just use the arguments array if no access arguments have been specified
       $access_arguments = $args;
     }
+    // If the services definition provides an override
+    if (array_key_exists('services_docs access arguments', $def)) {
+      $access_arguments = $def['services_docs access arguments'];
+    }
 
     if (call_user_func_array($def['access callback'], $access_arguments) || $user->uid == 1) {
       switch ($op_top){
@@ -130,15 +137,6 @@ function _build_resource($resourcename, $resource){
         case 'index':
           $method = _build_retrieve_method($def);
           $r_info[WADL::METHOD][] = $method;
-        break;
-        case 'relationships':
-          foreach($def as $rel_id => $rel){
-            $method = _build_retrieve_method($rel);
-            $r_info[WADL::RESOURCE][$rel['args'][0]['name']][WADL::RESOURCE][$rel_id] = array(
-              DOM::ATTRIBUTES => array('path' => $rel_id),
-              WADL::METHOD => array($method),
-            );
-          }
         break;
         case 'create':
           $method = _build_create_method($def);
@@ -163,6 +161,13 @@ function _build_resource($resourcename, $resource){
           }
           $r_info[WADL::RESOURCE][$def['args'][0]['name']][WADL::METHOD][] = $method;
         break;
+      }
+      if ($rel_id = strstr($op_top, "relationships_")) {
+        $method = _build_retrieve_method($def);
+        $r_info[WADL::RESOURCE][$def['args'][0]['name']][WADL::RESOURCE][$rel_id] = array(
+        DOM::ATTRIBUTES => array('path' => $rel_id),
+        WADL::METHOD => array($method),
+        );
       }
     }
   }
