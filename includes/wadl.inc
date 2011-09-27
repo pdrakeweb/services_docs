@@ -17,5 +17,6 @@ class WADL
   const REPRESENTATION  = 'wadl:representation';
   const PARAM           = 'wadl:param';
   const REQUEST         = 'wadl:request';
+  const RESPONSE        = 'wadl:response';
 }
 

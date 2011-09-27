@@ -209,6 +209,7 @@ function _build_update_method($def){
   /* they should be pulled in from a parser call, but couldn't find one, there may be one in services
      tools, but this needs research */
   $method[WADL::REQUEST][][WADL::REPRESENTATION] = _build_representations($data_param);
+  $method[WADL::RESPONSE][] = _build_response($def['response']);
   return $method;
 }
 
@@ -236,6 +237,7 @@ function _build_retrieve_method($def){
     }
   }
   $method[WADL::REQUEST][][WADL::PARAM] = $param;
+  $method[WADL::RESPONSE][] = _build_response($def['response']);
   return $method;
 }
 
@@ -263,6 +265,7 @@ function _build_delete_method($def){
     }
   }
   $method[WADL::REQUEST][][WADL::PARAM] = $param;
+  $method[WADL::RESPONSE][] = _build_response($def['response']);
   return $method;
 }
 
@@ -308,7 +311,17 @@ function _build_create_method($def){
   /* they should be pulled in from a parser call, but couldn't find one, there may be one in services
      tools, but this needs research */
   $method[WADL::REQUEST][][WADL::REPRESENTATION] = _build_representations($param);
+  $method[WADL::RESPONSE][] = _build_response($def['response']);
   return $method;
+}
+
+function _build_response($response) {
+  return array(
+    WADL::REPRESENTATION => array(array(
+      DOM::ATTRIBUTES => array('mediaType' => 'application/json'),
+      WADL::DOC => json_encode(array_keys($response)),
+    )),
+  );
 }
 
 function _build_representations($param){

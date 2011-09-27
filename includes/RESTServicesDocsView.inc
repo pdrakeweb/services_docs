@@ -15,7 +15,7 @@ class RESTServicesDocsView extends RESTServerViewBuiltIn {
     // TODO: Check if we are processing a WADL doc
     switch ($this->arguments['format']) {
       case 'xml':
-        if (array_key_exists(WADL::DOC, $this->model)) {
+        if (is_array($this->model) && array_key_exists(WADL::DOC, $this->model)) {
           return $this->render_xml($this->model);
         }
       break;
