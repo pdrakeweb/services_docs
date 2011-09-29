@@ -209,7 +209,7 @@ function _build_update_method($def){
   /* they should be pulled in from a parser call, but couldn't find one, there may be one in services
      tools, but this needs research */
   $method[WADL::REQUEST][][WADL::REPRESENTATION] = _build_representations($data_param);
-  $method[WADL::RESPONSE][] = _build_response($def['response']);
+  array_key_exists('response', $def) ? $method[WADL::RESPONSE][] = _build_response($def['response']) : NULL;
   return $method;
 }
 
@@ -237,7 +237,7 @@ function _build_retrieve_method($def){
     }
   }
   $method[WADL::REQUEST][][WADL::PARAM] = $param;
-  $method[WADL::RESPONSE][] = _build_response($def['response']);
+  array_key_exists('response', $def) ? $method[WADL::RESPONSE][] = _build_response($def['response']) : NULL;
   return $method;
 }
 
@@ -265,7 +265,7 @@ function _build_delete_method($def){
     }
   }
   $method[WADL::REQUEST][][WADL::PARAM] = $param;
-  $method[WADL::RESPONSE][] = _build_response($def['response']);
+  array_key_exists('response', $def) ? $method[WADL::RESPONSE][] = _build_response($def['response']) : NULL;
   return $method;
 }
 
@@ -294,7 +294,7 @@ function _build_create_method($def){
         DOM::ATTRIBUTES => array(
           'type' => $arg['type'],
           'required' => !$arg['optional'] ? "true" : "false",
-          'style' => 'plain', //@todo this is probably wrong too..
+          'style' => 'query', //@todo this is probably wrong too..
           'name' => $arg['name'],
         ),
         WADL::DOC => $arg['description'],
@@ -311,7 +311,7 @@ function _build_create_method($def){
   /* they should be pulled in from a parser call, but couldn't find one, there may be one in services
      tools, but this needs research */
   $method[WADL::REQUEST][][WADL::REPRESENTATION] = _build_representations($param);
-  $method[WADL::RESPONSE][] = _build_response($def['response']);
+  array_key_exists('response', $def) ? $method[WADL::RESPONSE][] = _build_response($def['response']) : NULL;
   return $method;
 }
 
