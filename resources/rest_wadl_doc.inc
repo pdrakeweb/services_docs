@@ -162,7 +162,7 @@ function _build_resource($resourcename, $resource){
           $r_info[WADL::RESOURCE][$def['args'][0]['name']][WADL::METHOD][] = $method;
         break;
       }
-      if ($rel_id = strstr($op_top, "relationships_")) {
+      if ($rel_id = str_replace("relationships_", "", $op_top)) {
         $method = _build_retrieve_method($def);
         $r_info[WADL::RESOURCE][$def['args'][0]['name']][WADL::RESOURCE][$rel_id] = array(
         DOM::ATTRIBUTES => array('path' => $rel_id),
