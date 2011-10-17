@@ -178,7 +178,7 @@ function _build_update_method($def){
   $method = array( //need to inject sub path here
     DOM::ATTRIBUTES => array(
       'name' => 'PUT',
-      'id' => $def['args'][0]['name'],
+      'id' => $def['callback'] . "-" . $def['args'][0]['name'],
     ),
     WADL::DOC => $def['help'],
   );
@@ -217,7 +217,7 @@ function _build_retrieve_method($def){
   $method = array( //need to inject sub path here
     DOM::ATTRIBUTES => array(
       'name' => 'GET',
-      'id' => $def['args'][0]['name'],
+      'id' => $def['callback'] . "-" . $def['args'][0]['name'],
     ),
     WADL::DOC => $def['help'],
   );
@@ -245,7 +245,7 @@ function _build_delete_method($def){
   $method = array(
     DOM::ATTRIBUTES => array(
       'name' => 'DELETE',
-      'id' => $def['args'][0]['name'],
+      'id' => $def['callback'] . "-" . $def['args'][0]['name'],
     ),
     WADL::DOC => $def['help'],
   );
@@ -282,7 +282,7 @@ function _build_create_method($def){
   $method = array( //need to inject sub path here
     DOM::ATTRIBUTES => array(
       'name' => 'POST',
-      'id' => 'id',
+      'id' => $def['callback'] . "-" . 'id',
     ),
     WADL::DOC => $def['help'],
   );
