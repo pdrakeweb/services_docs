@@ -119,7 +119,13 @@ function _build_resource($resourcename, $resource){
     }
     // If the services definition provides an override
     if (array_key_exists('services_docs access arguments', $def)) {
+      //compile default arguments to pass as second param
+      $args_array = array();
+      foreach ($def['args'] as $arg){
+        $args_array[] = $arg['default value'];
+      }
       $access_arguments = $def['services_docs access arguments'];
+      $access_arguments[] = $args_array;
     }
 
     if (call_user_func_array($def['access callback'], $access_arguments) || $user->uid == 1) {
